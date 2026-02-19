@@ -1,19 +1,16 @@
 import React from "react";
 
 type Props = {
-  /** Ruta normal: "/logo.png" (public) o URL "https://..." */
-  src: string;
+  /** Puedes pasar una URL normal o una ruta local, pero NO es obligatoria */
+  src?: string;
   alt?: string;
   className?: string;
   style?: React.CSSProperties;
   width?: number | string;
   height?: number | string;
 
-  /** Opcional: imagen alternativa si falla */
-  fallbackSrc?: string;
-
-  /** Opcional: placeholder si no hay src */
-  placeholderSrc?: string;
+  /** Texto a mostrar si no hay imagen o si falla */
+  fallbackText?: string;
 };
 
 export default function ImageWithFallback({
@@ -23,28 +20,47 @@ export default function ImageWithFallback({
   style,
   width,
   height,
-  fallbackSrc = "/placeholder.png",
-  placeholderSrc = "/placeholder.png",
+  fallbackText = "Imagen no disponible",
 }: Props) {
-  const [currentSrc, setCurrentSrc] = React.useState<string>(
-    src && src.trim().length > 0 ? src : placeholderSrc
-  );
+  const [failed, setFailed] = React.useState(false);
 
-  React.useEffect(() => {
-    setCurrentSrc(src && src.trim().length > 0 ? src : placeholderSrc);
-  }, [src, placeholderSrc]);
+  // Si no hay src o ya falló, mostramos placeholder
+  if (!src || failed) {
+    return (
+      <div
+        className={className}
+        style={{
+          width: width ?? "100%",
+          height: height ?? 200,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(255,255,255,0.06)",
+          border: "1px dashed rgba(255,255,255,0.16)",
+          color: "rgba(255,255,255,0.65)",
+          borderRadius: 12,
+          fontSize: 14,
+          textAlign: "center",
+          padding: 12,
+          ...style,
+        }}
+        role="img"
+        aria-label={alt || fallbackText}
+      >
+        {fallbackText}
+      </div>
+    );
+  }
 
+  // Si hay src, intentamos renderizar img normal
   return (
     <img
-      src={currentSrc}
+      src={src}
       alt={alt}
       className={className}
-      style={{ ...style, width, height }}
+      style={{ ...style, width, height, borderRadius: style?.borderRadius ?? 12 }}
       loading="lazy"
-      onError={() => {
-        // evita loops si fallback también falla
-        if (currentSrc !== fallbackSrc) setCurrentSrc(fallbackSrc);
-      }}
+      onError={() => setFailed(true)}
     />
   );
 }
