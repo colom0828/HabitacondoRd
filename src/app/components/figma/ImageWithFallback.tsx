@@ -1,7 +1,7 @@
 import React from "react";
 
 type Props = {
-  /** Puedes pasar una URL normal o una ruta local, pero NO es obligatoria */
+  /** Puedes pasar una URL normal o ruta local (opcional). Si no hay, se muestra fallback */
   src?: string;
   alt?: string;
   className?: string;
@@ -9,7 +9,7 @@ type Props = {
   width?: number | string;
   height?: number | string;
 
-  /** Texto a mostrar si no hay imagen o si falla */
+  /** Texto/placeholder cuando NO hay imagen o falla */
   fallbackText?: string;
 };
 
@@ -20,31 +20,30 @@ export default function ImageWithFallback({
   style,
   width,
   height,
-  fallbackText = "Imagen no disponible",
+  fallbackText = "Sin imagen"
 }: Props) {
   const [failed, setFailed] = React.useState(false);
 
-  // Si no hay src o ya falló, mostramos placeholder
-  if (!src || failed) {
+  const showFallback = !src || failed;
+
+  if (showFallback) {
     return (
       <div
         className={className}
         style={{
-          width: width ?? "100%",
-          height: height ?? 200,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "rgba(255,255,255,0.06)",
-          border: "1px dashed rgba(255,255,255,0.16)",
-          color: "rgba(255,255,255,0.65)",
+          width,
+          height,
+          display: "grid",
+          placeItems: "center",
           borderRadius: 12,
-          fontSize: 14,
+          border: "1px dashed rgba(255,255,255,0.18)",
+          background: "rgba(255,255,255,0.04)",
+          color: "rgba(255,255,255,0.65)",
+          fontSize: 12,
           textAlign: "center",
-          padding: 12,
-          ...style,
+          padding: 10,
+          ...style
         }}
-        role="img"
         aria-label={alt || fallbackText}
       >
         {fallbackText}
@@ -52,15 +51,14 @@ export default function ImageWithFallback({
     );
   }
 
-  // Si hay src, intentamos renderizar img normal
   return (
     <img
       src={src}
       alt={alt}
       className={className}
-      style={{ ...style, width, height, borderRadius: style?.borderRadius ?? 12 }}
-      loading="lazy"
+      style={{ width, height, objectFit: "cover", ...style }}
       onError={() => setFailed(true)}
+      loading="lazy"
     />
   );
 }
